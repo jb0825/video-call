@@ -1,5 +1,6 @@
-# WebSocket
+# Socket.IO
 
-https://developer.mozilla.org/ko/docs/Web/API/WebSocket
+https://socket.io/docs/v4/  
+[admin-ui docs](https://socket.io/docs/v4/admin-ui/)
 
-Chat using WebSocket API
+Chat using Socket.IO
