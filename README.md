@@ -1,3 +1,3 @@
-# Zoom
+# Video Call
 
-Zoom Clone using NodeJS, WebRTC and Websockets.
+https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices
