@@ -15,32 +15,32 @@ let myPeerConnection;
 const getCameras = async () => {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const cameras = devices.filter(device => device.kind === "videoinput");
+    const cameras = devices.filter((device) => device.kind === "videoinput");
     const currentCamera = myStream.getVideoTracks()[0];
 
     if (cameras.length === 0) {
       const option = document.createElement("option");
-      
+
       option.innerText = "No Camera";
       camerasSelect.appendChild(option);
       return;
     }
 
-    cameras.forEach(camera => {
+    cameras.forEach((camera) => {
       const option = document.createElement("option");
 
       option.value = camera.deviceId;
       option.innerText = camera.label;
-      if (currentCamera.label === camera.label) 
-        option.selected = true;
+      if (currentCamera.label === camera.label) option.selected = true;
 
-        camerasSelect.appendChild(option);
+      camerasSelect.appendChild(option);
     });
+  } catch (e) {
+    console.log(e);
+  }
+};
 
-  } catch (e) { console.log(e); }
-}
-
-const getMedia = async deviceId => {
+const getMedia = async (deviceId) => {
   const initialConstrains = {
     audio: true,
     video: { facingMode: "user" },
@@ -54,11 +54,13 @@ const getMedia = async deviceId => {
     myStream = await navigator.mediaDevices.getUserMedia(deviceId ? cameraConstrains : initialConstrains);
     myFace.srcObject = myStream;
     if (!deviceId) getCameras();
-  } catch (e) { console.log(e); }
-}
+  } catch (e) {
+    console.log(e);
+  }
+};
 
 const handleMuteClick = () => {
-  myStream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+  myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
 
   if (!muted) {
     muteBtn.innerText = "Unmute";
@@ -67,33 +69,32 @@ const handleMuteClick = () => {
     muteBtn.innerText = "Mute";
     muted = false;
   }
-}
+};
 const handleCameraClick = () => {
-  myStream.getVideoTracks().forEach(track => track.enabled = !track.enabled);
+  myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
 
   if (cameraOff) {
     cameraBtn.innerText = "Turn Camera Off";
     cameraOff = false;
   } else {
-    cameraBtn.innerText = "Turn Camera On"
+    cameraBtn.innerText = "Turn Camera On";
     cameraOff = true;
   }
-}
+};
 const handleCameraChange = () => {
   getMedia(camerasSelect.value);
 
   if (myPeerConnection) {
-    const videoTrack = myStream.getVideoTracks()[0]; 
-    const videoSender = myPeerConnection.getSenders().find(sender => sender.track.kind === "video");
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = myPeerConnection.getSenders().find((sender) => sender.track.kind === "video");
 
     videoSender.replaceTrack(videoTrack);
   }
-}
+};
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
-
 
 // Welcome Form (join a room)
 const welcome = document.getElementById("welcome");
@@ -109,7 +110,7 @@ const initCall = async () => {
   makeConnection();
 };
 
-const handleWelcomeSubmit = async event => {
+const handleWelcomeSubmit = async (event) => {
   event.preventDefault();
 
   const input = welcomeForm.querySelector("input");
@@ -132,51 +133,63 @@ socket.on("welcome", async () => {
   socket.emit("offer", offer, roomName);
 });
 
-
 // 방에 참가한 사람에게만 실행되는 코드 (for Peer B)
-socket.on("offer", async offer => {
+socket.on("offer", async (offer) => {
   console.log("⬅ received the offer");
   myPeerConnection.setRemoteDescription(offer);
 
   const answer = await myPeerConnection.createAnswer();
-  
+
   myPeerConnection.setLocalDescription(answer);
   console.log("➡ send the answer");
   socket.emit("answer", answer, roomName);
 });
 
 // 방의 주인에게 실행되는 코드 (for Peer A)
-socket.on("answer", answer => {
+socket.on("answer", (answer) => {
   console.log("⬅ received the answer");
   myPeerConnection.setRemoteDescription(answer);
 });
 
-socket.on("ice", ice => {
-  console.log("⬅ received ice candidate")
+socket.on("ice", (ice) => {
+  console.log("⬅ received ice candidate");
   myPeerConnection.addIceCandidate(ice);
 });
 
 // RTC Code
 // Create Peer-to-peer Connection
 const makeConnection = () => {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   myPeerConnection.addEventListener("icecandidate", handleIce);
   myPeerConnection.addEventListener("addstream", handleAddStream);
 
   try {
-    myStream.getTracks().forEach(track => myPeerConnection.addTrack(track, myStream));
-  } catch (e) { console.log(e); }
-}
+    myStream.getTracks().forEach((track) => myPeerConnection.addTrack(track, myStream));
+  } catch (e) {
+    console.log(e);
+  }
+};
 
 const handleIce = (data) => {
   socket.emit("ice", data.candidate, roomName);
   console.log("➡ send ice candidate");
-}
+};
 
-const handleAddStream = data => {
+const handleAddStream = (data) => {
   console.log("Peer's Stream", data.stream);
   console.log("My Stream", myStream);
 
   const peerFace = document.getElementById("peerFace");
   peerFace.srcObject = data.stream;
-}
+};
