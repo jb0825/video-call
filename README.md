@@ -1,7 +1,8 @@
 # Video Call
 
 peer-to-peer video call using NodeJS, WebRTC and SocketIO  
-https://developer.mozilla.org/ko/docs/Web/API/WebRTC_API  
+https://developer.mozilla.org/ko/docs/Web/API/WebRTC_API
+
 [강의 링크](https://nomadcoders.co/noom/lectures/3111)
 
 Signaling Server 구축에 SocketIO 를 이용함
