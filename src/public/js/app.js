@@ -11,6 +11,7 @@ let cameraOff = false;
 let roomName;
 /** @type {RTCPeerConnection} */
 let myPeerConnection;
+//let dataChannel;
 
 const getCameras = async () => {
   try {
@@ -126,6 +127,9 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 // Socket Code
 // 방의 주인에게만 실행되는 코드 (for Peer A)
 socket.on("welcome", async () => {
+  //dataChannel = myPeerConnection.createDataChannel("dataChannel");
+  console.log("create dataChannel");
+
   const offer = await myPeerConnection.createOffer();
 
   myPeerConnection.setLocalDescription(offer);
@@ -135,6 +139,8 @@ socket.on("welcome", async () => {
 
 // 방에 참가한 사람에게만 실행되는 코드 (for Peer B)
 socket.on("offer", async (offer) => {
+  //myPeerConnection.addEventListener("datachannel", console.log);
+
   console.log("⬅ received the offer");
   myPeerConnection.setRemoteDescription(offer);
 
